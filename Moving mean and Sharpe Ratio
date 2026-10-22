@@ -1,0 +1,79 @@
+#Moving mean and Sharpe Ratio
+
+import numpy as np
+import matplotlib.pyplot as plt
+import yfinance as yf
+import pandas as pd
+
+R_f = 5.5 #Treasury Yield Rates
+
+dat1 = yf.Ticker("AAPL") #Stock we are interested in
+df1 = dat1.history(period='5y', interval="1d")
+df1 = df1.reset_index(drop=True)
+dividends1 = df1.iloc[:,5]
+stock = df1.iloc[:,0]
+stock_mean = np.sum(stock)/len(stock)
+
+dat2 = yf.Ticker("^GSPC") #S&P500
+df2 = dat2.history(period='5y', interval="1d")
+df2 = df2.reset_index(drop=True)
+market = df2.iloc[:,0]
+market_mean = np.sum(market)/len(market)
+
+#Moving averages
+short = np.zeros(len(stock))
+long = np.zeros(len(stock))
+
+for i in range(len(stock)):
+    if i>14:
+        short[i] = np.sum(stock.iloc[i-14:i+1:1])/15
+    else:
+        short[i]=np.nan
+    if i>50:
+        long[i]= np.sum(stock.iloc[i-50:i+1:1])/51
+    else:
+        long[i]=np.nan 
+
+plt.plot(stock, color = "mediumseagreen", label = "Data") #Plot of distances
+plt.plot(short, color = "r", label = "Short moving average")
+plt.plot(long, color = "b", label = "Long moving average")
+plt.legend()
+
+
+#Calculating a stock's beta and expected return
+df1month = dat1.history(period='5y', interval="1mo")
+df1month = df1month.reset_index(drop=True)
+stock_monthly = df1month.iloc[:,0]
+
+df2month = dat2.history(period='5y', interval="1mo")
+df2month = df2month.reset_index(drop=True)
+market_monthly = df2month.iloc[:,0]
+
+vars = 0
+varm = 0
+covar = 0
+
+stock_mean_percent = ((stock.iloc[-1] / stock.iloc[0]) - 1) * 100
+stock_mean_percent = ((1 + stock_mean_percent/100)**(1/60)-1)*100
+
+market_mean_percent = ((market.iloc[-1] / market.iloc[0]) - 1) * 100
+market_mean_percent = ((1 + market_mean_percent/100)**(1/60)-1)*100
+
+for i in range(len(stock_monthly)):
+    if i > 0:
+        x = ((stock_monthly[i] / stock_monthly[i-1]) - 1) * 100
+        y = ((market_monthly[i] / market_monthly[i-1]) - 1) * 100
+        vars += (x - stock_mean_percent) ** 2
+        varm += (y - market_mean_percent) **2
+        covar += (x - stock_mean_percent) * (y - market_mean_percent)
+
+vars = vars / (len(stock_monthly)-1)
+varm = varm / (len(stock_monthly)-1)
+covar = covar / (len(stock_monthly)-1)
+beta = np.round(covar/varm,4)
+
+print(beta)
+R_a = R_f + beta*(9 - R_f)
+print(R_a)
+sharpe = (R_a - R_f)/np.sqrt(vars)
+print(sharpe)
