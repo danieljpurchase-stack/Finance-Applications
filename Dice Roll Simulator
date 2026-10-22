@@ -1,0 +1,22 @@
+#Dice roll simulator
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+faces = 6
+N = 2
+trials = 10000
+
+rng = np.random.default_rng()
+
+def rand():
+    X = [] #Array of sums
+    for i in range(trials): #Roll the dice, sum and remove the lowest value
+        Roll = rng.integers(1,faces, size=N, endpoint=True)
+        X.append(np.sum(Roll))
+    return(X)
+
+plt.hist(rand(),bins = (2*faces-N+1) , density = True, color = "mediumseagreen")
+plt.xlabel("Sum of rolls")
+plt.ylabel("Probability")
+plt.show
