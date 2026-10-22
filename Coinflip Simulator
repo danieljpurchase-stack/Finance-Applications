@@ -1,0 +1,29 @@
+#Coinflip simulator
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+N = 10000 #Number of steps
+
+rng = np.random.default_rng()
+Data = np.round(rng.choice([-1,1], size=N, replace=True)) #Generate either 1 or -1
+
+def walk():
+    Dist = 0 
+    X = [Dist] #Array of distances
+    Total = 0 
+    Y = [Dist] #Array of mean values
+    for i in range(len(Data)):
+        Dist += Data[i]
+        X.append(Dist)
+        Total = np.sum(X)
+        Y.append(Total)
+    for i in range(len(Y)):
+        Y[i] = Y[i] / (i + 1)
+    return(X,Y)
+
+
+plt.plot(walk()[0], color = "mediumseagreen") #Plot of distances
+plt.plot(walk()[1]) #Plot of mean value
+plt.xlabel("Time")
+plt.ylabel("Distance")
